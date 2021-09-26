@@ -1,14 +1,14 @@
 'use strict'
 const http = require('http')
 const { promisify } = require('util')
-const { spawn, execSync } = require('child_process')
+const { spawn } = require('child_process')
 const net = require('net')
 const assert = require('assert').strict
 const { AssertionError } = require('assert')
 const { mkdtempSync, writeFileSync } = require('fs')
 const { tmpdir }  = require('os')
 const { join } = require('path')
-const tmp = mkdtempSync(join(tmpdir(), 'ch-10-labs-2'))
+const tmp = mkdtempSync(join(tmpdir(), 'ch-10-labs-1'))
 const preload = join(tmp, 'preload.js')
 const ip = join(tmp, 'ip')
 writeFileSync(ip, '')
@@ -75,24 +75,13 @@ const up = promisify(function retry (port, cb) {
 
 async function system (p1 = 3000) {
   const PORT = await getPort(p1)
-  const app = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'dev'], {
+  const app = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['start'], {
     cwd: __dirname,
     stdio: 'inherit',
-    env: { ...process.env, PORT, NODE_OPTIONS: `-r ${preload}` },
-    detached: true
+    env: { ...process.env, PORT, NODE_OPTIONS: `-r ${preload}` }
   })
   function close () {
-    if( process.platform == "win32"){
-      try { 
-        execSync(`taskkill /PID ${app.pid} /T /F`)
-      } catch (err) {
-        try { 
-          app.kill()
-        } catch (err) {}
-      }
-    } else {
-      process.kill(-app.pid) 
-    }
+    app.kill()
   }
   try { 
     await up(PORT)
@@ -163,7 +152,7 @@ async function ok (port) {
 }
 
 async function attack (port) {
-  writeFileSync(ip, '211.133.33.113')
+  writeFileSync(ip, '111.34.55.211')
   try { 
     const url = `http://localhost:${port}/`
     const res = await get(url)
